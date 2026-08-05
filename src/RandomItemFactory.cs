@@ -25,8 +25,7 @@ internal static class RandomItemFactory
                 randomItem = new RandomBag((EquipmentStats)itemStats);
                 break;
             default:
-                randomItem = new RandomItem(itemStats);
-                break;
+                return null;
         }
 
         randomItem.Randomize();

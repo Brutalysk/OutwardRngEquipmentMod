@@ -5,16 +5,28 @@
 // Assembly location: C:\Users\Xavie\Downloads\RngEquipmentMod.dll
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Cryptography;
 
 #nullable disable
 namespace RngEquipmentMod;
 
+public enum RandomItemQualityType
+{
+    Cursed = 0,
+    Doomed = 1,
+    Legendary = 2,
+}
+
 public class RandomItem
 {
+    public List<RandomItemQualityType> _qualityTypes { get; set; }
+
     public UID _UID { get; set; }
 
+    public string _name { get; set; }
+    
     public int _maxDurability { get; set; }
 
     public float _rawWeight { get; set; }
@@ -28,6 +40,7 @@ public class RandomItem
         _maxDurability = itemStats.MaxDurability;
         _rawWeight = itemStats.RawWeight;
         _UID = itemStats.m_item.UID;
+        _name = itemStats.m_item.Name;
     }
 
     public virtual void Randomize()
@@ -41,7 +54,7 @@ public class RandomItem
 
     public virtual void SetItem(ItemStats itemStats)
     {
-        Plugin.Log.LogMessage($"[SetItem]::SetItem - weight : {_rawWeight}, durability : {_maxDurability}");
+        Plugin.Log.LogMessage($"[SetItem]::SetItem - weight : {_rawWeight}, durability : {_maxDurability}, name : {_name}");
         GetField<ItemStats>("m_rawWeight").SetValue(itemStats, _rawWeight);
         GetField<ItemStats>("m_baseMaxDurability").SetValue(itemStats, _maxDurability);
     }

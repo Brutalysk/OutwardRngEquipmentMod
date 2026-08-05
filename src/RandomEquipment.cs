@@ -113,12 +113,12 @@ public class RandomEquipment : RandomItem
 
     public float GetEquipmentScore()
     {
-        return 0.0f + GetDamageBonusScore() + GetUtilitiesScore() + GetResourceModifiersScore();
+        return GetDamageBonusScore() + GetUtilitiesScore() + GetResourceModifiersScore();
     }
 
     protected void RandomizeDamageBonus(float availableScore)
     {
-        List<int> types = GetTypes(35);
+        List<int> types = GetTypes(5);
         ClearDamageArray();
         for (int index = 0; index < types.Count - 1; ++index)
         {
@@ -161,7 +161,7 @@ public class RandomEquipment : RandomItem
 
     protected float GetUtilitiesScore()
     {
-        return (float)(0.0 + _pouchCapacityBonus * 2.0 + _movementPenalty * 2.0);
+        return (float)(_pouchCapacityBonus * 2.0 + _movementPenalty * 2.0);
     }
 
     protected void ClearUtilities()
@@ -170,30 +170,35 @@ public class RandomEquipment : RandomItem
         _movementPenalty = 0.0f;
     }
 
+    protected float GetProposedNegativeValue()
+    {
+        return -GetScoreFromPercentValue(15.0f);
+    }
+    
     protected void RandomizeResourceModifiers(float availableScore)
     {
-        int num1 = RollOdds(40) ? 1 : 0;
-        int num2 = RollOdds(20) ? 1 : 0;
-        bool flag = availableScore < 0.0;
+        bool affectsMagicAttributes = RollOdds(40);
+        bool affectsCooldownReduction = RollOdds(20);
+        bool isNegative = availableScore < 0.0;
         ClearResourceModifiers();
 
         float modifier = CalculateModifier(50);
-        if (num2 != 0)
+        if (affectsCooldownReduction)
         {
-            float num3 = availableScore / 2f * modifier;
-            float percentValueFromScore = GetPercentValueFromScore(Math.Abs(num3));
-            if (flag)
+            float attributeScore = availableScore / 2f * modifier;
+            float percentValueFromScore = GetPercentValueFromScore(Math.Abs(attributeScore));
+            if (isNegative)
                 percentValueFromScore *= -1f;
             _cooldownReductionBonus = (float)Math.Round(percentValueFromScore, 1);
-            availableScore -= num3;
+            availableScore -= attributeScore;
         }
 
-        if (num1 != 0)
+        if (affectsMagicAttributes)
         {
             if (RollOdds(3))
                 _manaRegenBonus = 1f;
             float percentValueFromScore = GetPercentValueFromScore(Math.Abs(availableScore));
-            if (flag)
+            if (isNegative)
                 percentValueFromScore *= -1f;
             _manaUseModifier = (float)Math.Round(percentValueFromScore, 1);
         }
@@ -202,7 +207,7 @@ public class RandomEquipment : RandomItem
             if (RollOdds(5))
                 _staminaRegen = 1f;
             float percentValueFromScore = GetPercentValueFromScore(Math.Abs(availableScore));
-            if (flag)
+            if (isNegative)
                 percentValueFromScore *= -1f;
             _staminaCostReduction = (float)Math.Round(percentValueFromScore, 1);
         }
@@ -210,9 +215,9 @@ public class RandomEquipment : RandomItem
 
     protected float GetResourceModifiersScore()
     {
-        return (float)(0.0 + GetScoreFromPercentValue(_cooldownReductionBonus) +
-                       GetScoreFromPercentValue(Math.Max(_manaUseModifier, 0.0f)) + _manaRegenBonus * 15.0) +
-               GetScoreFromPercentValue(_staminaCostReduction) + _staminaCostReduction + _staminaRegen;
+        return (float)(GetScoreFromPercentValue(_cooldownReductionBonus) +
+            GetScoreFromPercentValue(Math.Max(_manaUseModifier, 0.0f)) + _manaRegenBonus * 15.0) + 
+            GetScoreFromPercentValue(_staminaCostReduction) + _staminaCostReduction + _staminaRegen;
     }
 
     protected void ClearResourceModifiers()

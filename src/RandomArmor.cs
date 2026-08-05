@@ -4,6 +4,7 @@
 // MVID: EC41F823-2535-484D-AE60-4EB1D1607286
 // Assembly location: C:\Users\Xavie\Downloads\RngEquipmentMod.dll
 
+using System;
 using System.Collections.Generic;
 
 #nullable disable
@@ -25,71 +26,95 @@ public class RandomArmor : RandomEquipment
 
     public override void Randomize()
     {
-        float score = getScore();
-        bool flag1 = RollOdds(50);
-        int num1 = RollOdds(35) ? 1 : 0;
-        bool flag2 = RollOdds(35);
-        bool flag3 = RollOdds(60);
-        int num2 = 1;
-        if (num1 != 0)
-            ++num2;
-        if (flag2)
-            ++num2;
-        if (flag3)
-            ++num2;
-        if (flag3)
+        base.Randomize();
+        float score = GetScore();
+
+        ClearDamageArray();
+        ClearUtilities();
+        ClearResourceModifiers();
+
+        bool hasDamageBonusModifiers = RollOdds(35);
+        bool hasUtilitiesModifiers = RollOdds(35);
+        bool hasResourceModifiers = RollOdds(60);
+
+        int numberOfModifiers = 1;
+        if (hasDamageBonusModifiers) ++numberOfModifiers;
+        if (hasUtilitiesModifiers) ++numberOfModifiers;
+        if (hasResourceModifiers) ++numberOfModifiers;
+
+        if (hasResourceModifiers)
         {
             float modifier = CalculateModifier(60);
-            float availableScore = score / num2 * modifier;
-            if (flag1)
-                availableScore *= -1f;
+            float negativeAttributeModifier = RollOdds(50) ? 1.0f : -1.0f;
+            float availableScore = score / numberOfModifiers * modifier * negativeAttributeModifier;
+            availableScore = availableScore < 0.0f ? Math.Min(availableScore, GetProposedNegativeValue() * modifier) : availableScore;
+
             RandomizeResourceModifiers(availableScore);
-            --num2;
+            --numberOfModifiers;
             score -= availableScore;
         }
-        else
-            ClearResourceModifiers();
 
-        if (flag2)
+        if (hasUtilitiesModifiers)
         {
             float modifier = CalculateModifier(60);
-            float availableScore = score / num2 * modifier;
+            float availableScore = score / numberOfModifiers * modifier;
             RandomizeUtilities(availableScore);
-            --num2;
+            --numberOfModifiers;
             score -= availableScore;
         }
-        else
-            ClearUtilities();
 
-        if (num1 != 0)
+        if (hasDamageBonusModifiers)
         {
             float modifier = CalculateModifier(60);
-            float availableScore = score / num2 * modifier;
+            float availableScore = score / numberOfModifiers * modifier;
             RandomizeDamageBonus(availableScore);
             score -= availableScore;
         }
-        else
-            ClearDamageArray();
 
         RandomizeProtectionBonus(score);
     }
 
-    private float getScore() => 0.0f + GetEquipmentScore() + GetProtectionScore();
+    private float GetScore()
+    {
+        // Clamp the equipment score to 0 to give a chance for heavy helmets to have some score left.
+        float equipmentScore = GetEquipmentScore();
+        return equipmentScore + GetProtectionScore();
+    }
 
     protected void RandomizeProtectionBonus(float availableScore)
     {
-        List<int> intList = new List<int>();
-        intList.AddRange(GetTypes(35));
-        if (RollOdds(90) && !intList.Contains(0))
-            intList.Add(0);
-        ClearResistanceArray();
-        for (int index = 0; index < intList.Count; ++index)
+        List<int> resistanceList = new List<int>();
+        resistanceList.AddRange(GetTypes(35));
+        if (RollOdds(90) && !resistanceList.Contains(0))
+            resistanceList.Add(0);
+
+        if (RollOdds(25))
         {
-            int num = intList.Count - index;
-            float score = availableScore / num * CalculateModifier(80 /*0x50*/);
-            _damageResistance[intList[index]] = GetPercentValueFromScore(score);
+            List<int> resistanceDebuffList = new List<int>();
+            resistanceDebuffList.AddRange(GetTypes(35));
+            resistanceDebuffList.RemoveAll(item => resistanceList.Contains(item));
+            ClearResistanceArray();
+
+            foreach(int resistanceDebuff in resistanceDebuffList)
+            {
+                int num = resistanceList.Count;
+            
+                float modifier = CalculateModifier(30);
+                float score = -(availableScore / num * modifier);
+                score = Math.Min(score, GetProposedNegativeValue() * modifier);
+                _damageResistance[resistanceDebuff] = GetPercentValueFromScore(score);
+                availableScore -= score;
+            }
+        }
+
+        for (int index = 0; index < resistanceList.Count - 1; ++index)
+        {
+            int num = resistanceList.Count - index;
+            float score = availableScore / num * CalculateModifier(30);
+            _damageResistance[resistanceList[index]] = GetPercentValueFromScore(score);
             availableScore -= score;
         }
+        _damageResistance[resistanceList[resistanceList.Count - 1]] = GetPercentValueFromScore(availableScore);
     }
 
     protected float GetProtectionScore()

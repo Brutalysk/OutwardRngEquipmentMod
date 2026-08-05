@@ -35,7 +35,10 @@ internal class EquipmentStats_OnAwake
             try
             {
                 RandomItem randomItem = RandomItemFactory.CreateRandomItem(itemStats.m_item, itemStats);
-                Plugin.RandomItemRepository.Add(randomItem);
+                if(randomItem != null)
+                {
+                    Plugin.RandomItemRepository.Add(randomItem);
+                }
             }
             catch (Exception ex)
             {

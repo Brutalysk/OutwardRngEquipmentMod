@@ -159,7 +159,7 @@ public class RandomWeapon : RandomEquipment
         if (flag)
         {
             float modifier = CalculateModifier(60);
-            float availableScore = score / (float)num2 * modifier;
+            float availableScore = score / num2 * modifier;
             RandomizeDamageBonus(availableScore);
             --num2;
             score -= availableScore;
@@ -171,7 +171,7 @@ public class RandomWeapon : RandomEquipment
         {
             int num3 = RollOdds(35) ? 1 : 0;
             float modifier = CalculateModifier(60);
-            float availableScore = score / (float)num2 * modifier;
+            float availableScore = score / num2 * modifier;
             if (num3 != 0)
                 availableScore *= -1f;
             RandomizeResourceModifiers(availableScore);
@@ -199,7 +199,7 @@ public class RandomWeapon : RandomEquipment
             num = 1f + (float)((num - 1.0) * 2.0);
         }
 
-        _attackSpeed = (float)Math.Round((double)num, 1);
+        _attackSpeed = (float)Math.Round(num, 1);
     }
 
     private void RandomizeDamage(float value)
@@ -207,7 +207,7 @@ public class RandomWeapon : RandomEquipment
         List<RandomWeaponDamageType> weaponDamageTypeList = new List<RandomWeaponDamageType>();
         List<DamageType.Types> typesList = new List<DamageType.Types>();
 
-        if (RollOdds(65))
+        if (RollOdds(80))
         {
             typesList.Add(DamageType.Types.Physical);
         }
@@ -216,7 +216,7 @@ public class RandomWeapon : RandomEquipment
             typesList.Add((DamageType.Types)(int)allowedDamageTypes[GetRandomValue(1, allowedDamageTypes.Length - 1)]);
         }
 
-        while (RollOdds(35))
+        while (RollOdds(25))
         {
             DamageType.Types allowedDamageType = (DamageType.Types)(int)allowedDamageTypes[GetRandomValue(0, allowedDamageTypes.Length - 1)];
 
